@@ -1,5 +1,7 @@
 # CalorieScience Companion: Client Adherence & Practitioner Intelligence
 
+**Live demo:** https://shardaa.github.io/CalorieScience-Assessment/ (split view) · [client app](https://shardaa.github.io/CalorieScience-Assessment/#/client) · [practitioner dashboard](https://shardaa.github.io/CalorieScience-Assessment/#/practitioner)
+
 A working prototype of the feedback loop between a client following a meal plan (**Companion App**, mobile) and their nutrition practitioner (**CalorieScience dashboard**, desktop). Both sides share one live data store, so anything the client logs shows up on the practitioner side, and anything the practitioner changes shows up in the client's app.
 
 > **Try the loop in 60 seconds** (split view at `/`):
