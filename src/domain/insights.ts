@@ -49,7 +49,8 @@ export type TriggerCode =
   | 'frequent_substitution'
   | 'logging_gap'
   | 'declining'
-  | 'no_logs';
+  | 'no_logs'
+  | 'no_plan';
 
 export interface Trigger {
   code: TriggerCode;
@@ -331,15 +332,22 @@ export function analyse(db: Database, clientId: string, now: Date): Analysis {
   const lastActivityAt = clientEvents[clientEvents.length - 1] ?? null;
   const newSinceReview = !cs?.lastReviewedAt || (lastActivityAt !== null && lastActivityAt > cs.lastReviewedAt);
 
+  // A client with no plan has nothing to follow: always worth the practitioner's attention.
+  const hasPlan = db.plans.some((p) => p.clientId === clientId);
+  if (!hasPlan) triggers.push({ code: 'no_plan', label: 'Plan not shared yet', severity: 'high' });
+
   const sevWeight = { high: 30, medium: 12, low: 4 } as const;
   const sevRank = { high: 0, medium: 1, low: 2 } as const;
   triggers.sort((x, y) => sevRank[x.severity] - sevRank[y.severity]);
   let priority = triggers.reduce((sum, t) => sum + sevWeight[t.severity], 0);
   if (!newSinceReview && !cs?.flag) priority = Math.round(priority * 0.2); // reviewed and nothing new → sink
+  if (!hasPlan) priority = Math.max(priority, sevWeight.high);
 
   // Headline: one short paragraph assembled only from observed facts + clearly marked prompts.
   const parts: string[] = [];
-  if (summary.logged === 0) {
+  if (!hasPlan) {
+    parts.push('No meal plan has been shared yet. The client can sign in, but has nothing to follow until you share one.');
+  } else if (summary.logged === 0) {
     parts.push(summary.due ? 'No meals logged in the last 7 days, so there is nothing to assess yet.' : 'The programme started today. There is nothing to assess yet.');
   } else {
     if (consistent.length) parts.push(`${joinList(consistent.map((s) => SLOT_LABEL[s]))} adherence is consistent.`);

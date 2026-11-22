@@ -1,8 +1,10 @@
 import { ArrowUpRight, LayoutDashboard, Leaf, Monitor, RotateCcw, SlidersHorizontal, Smartphone, Users, WifiOff, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ClientApp } from './client/ClientApp';
+import { SignIn } from './client/SignIn';
+import { session, useSession } from './data/session';
 import { backend } from './data/backend';
-import { useSettings, useToast } from './data/hooks';
+import { useDb, useSettings, useToast } from './data/hooks';
 import { PRIMARY_CLIENT_ID } from './domain/seed';
 import { PractitionerApp } from './practitioner/PractitionerApp';
 
@@ -26,7 +28,7 @@ export function App() {
   if (route === 'client')
     return (
       <div className="standalone-client">
-        <ClientApp clientId={PRIMARY_CLIENT_ID} />
+        <ClientGate />
         <DemoControls />
       </div>
     );
@@ -73,7 +75,7 @@ export function App() {
           </p>
           <div className="phone">
             <span className="phone-island" aria-hidden />
-            <ClientApp clientId={PRIMARY_CLIENT_ID} />
+            <ClientGate />
           </div>
         </section>
         <section className="pane-practitioner" aria-label="Practitioner dashboard">
@@ -141,6 +143,7 @@ function DemoControls() {
               className="btn btn-ghost"
               onClick={() => {
                 backend.reset();
+                session.reset();
                 toast({ tone: 'info', text: 'Demo data reset to the scenario' });
               }}
             >
@@ -150,6 +153,7 @@ function DemoControls() {
               className="btn btn-ghost"
               onClick={() => {
                 backend.reset(72);
+                session.reset();
                 toast({ tone: 'info', text: 'Loaded 80-client caseload' });
               }}
             >
@@ -165,4 +169,12 @@ function DemoControls() {
       )}
     </div>
   );
+}
+
+/** The Companion app as a client sees it: sign in by email, then their own day. */
+function ClientGate() {
+  const db = useDb();
+  const id = useSession();
+  const signedIn = id && db.clients.some((c) => c.id === id) ? id : null;
+  return signedIn ? <ClientApp key={signedIn} clientId={signedIn} /> : <SignIn />;
 }

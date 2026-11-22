@@ -1,4 +1,4 @@
-import { ChartColumn, House, MessageCircle, Plus, UtensilsCrossed } from 'lucide-react';
+import { ChartColumn, House, MessageCircle, UtensilsCrossed } from 'lucide-react';
 import { useState } from 'react';
 import { useDb, useLoad } from '../data/hooks';
 import type { MealSlot } from '../domain/types';
@@ -19,7 +19,6 @@ export function ClientApp({ clientId }: { clientId: string }) {
   const load = useLoad(`client:${clientId}`);
   const [tab, setTab] = useState<ClientTab>('today');
   const [draft, setDraft] = useState<Draft | null>(null);
-  const [logRequest, setLogRequest] = useState(0);
   const client = db.clients.find((c) => c.id === clientId);
 
   const unread = db.messages.filter((m) => m.clientId === clientId && m.author === 'practitioner' && !m.seenByClientAt).length;
@@ -44,7 +43,7 @@ export function ClientApp({ clientId }: { clientId: string }) {
         {load.status === 'ready' && !client && <ErrorState message="This client profile no longer exists." onRetry={load.retry} />}
         {load.status === 'ready' && client && (
           <>
-            {tab === 'today' && <TodayScreen client={client} onTell={goTell} logRequest={logRequest} onLogHandled={() => setLogRequest(0)} />}
+            {tab === 'today' && <TodayScreen client={client} onTell={goTell} />}
             {tab === 'plan' && <PlanScreen client={client} />}
             {tab === 'progress' && <ProgressScreen client={client} onTell={goTell} />}
             {tab === 'messages' && <FeedbackScreen client={client} draft={draft} onDraftUsed={() => setDraft(null)} />}
@@ -52,20 +51,7 @@ export function ClientApp({ clientId }: { clientId: string }) {
         )}
       </main>
       <nav className="tabbar" aria-label="Companion app">
-        {TABS.slice(0, 2).map((t) => (
-          <TabButton key={t[0]} t={t} active={tab === t[0]} unread={unread} onClick={() => setTab(t[0])} />
-        ))}
-        <button
-          className="tab-plus"
-          aria-label="Log a meal"
-          onClick={() => {
-            setTab('today');
-            setLogRequest(Date.now());
-          }}
-        >
-          <Plus size={24} strokeWidth={2.6} />
-        </button>
-        {TABS.slice(2).map((t) => (
+        {TABS.map((t) => (
           <TabButton key={t[0]} t={t} active={tab === t[0]} unread={unread} onClick={() => setTab(t[0])} />
         ))}
       </nav>

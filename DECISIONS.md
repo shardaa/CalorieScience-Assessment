@@ -1,7 +1,7 @@
 # Product decisions (Part D)
 
 ### What should the client see first?
-**Today's meals, in time order, with the next one highlighted** ("Up next"), and above them only two things: any unread message from the practitioner, and a check-in card ("2 of 4 meals" with a ring). No score, no streak, no calorie numbers. The next meal gets a large card of its own; a centre **+** in the tab bar logs it from any screen. The client's question on opening the app is "what am I eating next?", not "how am I doing?".
+**Today's meals, in time order, with the next one highlighted** ("Up next"), and above them only two things: any unread message from the practitioner, and a check-in card ("2 of 4 meals" with a ring). No score, no streak, no calorie numbers. The next meal gets a large card of its own with a one-tap **Had it**. The client's question on opening the app is "what am I eating next?", not "how am I doing?".
 
 ### What should the practitioner see first?
 **A triaged caseload**, not a client. "Who needs you this week" is pre-filtered to *Needs attention* and sorted by trigger severity, with each row saying *why* it surfaced ("Afternoon snack often skipped", "New client feedback"). Opening a client leads with a **one-paragraph summary** of what appears to be happening. The heatmap, feedback and actions come after it.
@@ -54,5 +54,7 @@ The insight engine returns separate typed arrays, and the UI renders each in a v
 | **Flag for follow-up** | – | Flag chip, top of triage |
 | **Mark week reviewed** | – | Feedback marked seen, client sinks in roster until new data |
 | **Private note** | – | Stored on the client record |
+| **Add client** (caseload header) | They can sign in with their email straight away and see "Your plan isn't ready yet" | Name, email, age, goal, programme length. No plan yet, so they surface in *Needs attention* as "Plan not shared yet". Duplicate names or emails are refused. |
+| **Create / edit whole plan** (Meal plan tab) | "Your meal plan is ready" (or "updated") card, and the meals on Today and Plan | Four meals on one screen: time, meal, what to eat, alternatives, prep. Sharing creates v1, or a new version that marks only the meals that changed. |
 
 "Propose" and "Apply" are separate steps on purpose: a practitioner can record a change they want to discuss in the next session without pushing it to the client yet.

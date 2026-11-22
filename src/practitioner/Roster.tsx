@@ -1,4 +1,4 @@
-import { ChevronRight, Search, Users } from 'lucide-react';
+import { ChevronRight, Search, UserPlus, Users } from 'lucide-react';
 import { useMemo, useState } from 'react';
 import { useDb, useLoad, useNow } from '../data/hooks';
 import { pct } from '../domain/adherence';
@@ -6,6 +6,8 @@ import { analyse, type Analysis, type TriggerCode } from '../domain/insights';
 import { daysBetween, relativeTime, toDateKey } from '../domain/time';
 import type { Client } from '../domain/types';
 import { SLOTS } from '../domain/types';
+import { AddClientDrawer } from './AddClientDrawer';
+import type { DetailTab } from './ClientDetail';
 import { Avatar, EmptyState, ErrorState, SkeletonList } from '../ui/kit';
 
 type Filter = 'attention' | 'feedback' | 'gaps' | 'flagged' | 'all';
@@ -22,12 +24,13 @@ function has(a: Analysis, code: TriggerCode) {
   return a.triggers.some((t) => t.code === code);
 }
 
-export function Roster({ onOpen }: { onOpen: (id: string) => void }) {
+export function Roster({ onOpen }: { onOpen: (id: string, tab?: DetailTab) => void }) {
   const db = useDb();
   const now = useNow();
   const load = useLoad('roster');
   const [filter, setFilter] = useState<Filter>('attention');
   const [q, setQ] = useState('');
+  const [adding, setAdding] = useState(false);
 
   // One analysis per client. At 50–100 clients this is still < 5 ms; in production it
   // would be computed server-side on log write and stored as a denormalised summary.
@@ -51,11 +54,25 @@ export function Roster({ onOpen }: { onOpen: (id: string) => void }) {
           <h1>Who needs you this week</h1>
           <p className="muted">Sorted by what changed since your last review. Clients you've reviewed sink until something new arrives.</p>
         </div>
-        <label className="search">
-          <Search size={15} />
-          <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search clients" aria-label="Search clients" />
-        </label>
+        <div className="page-tools">
+          <label className="search">
+            <Search size={15} />
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search clients" aria-label="Search clients" />
+          </label>
+          <button className="btn btn-primary" onClick={() => setAdding(true)}>
+            <UserPlus size={15} /> Add client
+          </button>
+        </div>
       </div>
+      {adding && (
+        <AddClientDrawer
+          onClose={() => setAdding(false)}
+          onAdded={(id) => {
+            setAdding(false);
+            onOpen(id, 'plan');
+          }}
+        />
+      )}
 
       <div className="filter-tiles" role="tablist" aria-label="Filter clients">
         {FILTERS.map(([k, label]) => (

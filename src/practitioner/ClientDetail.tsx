@@ -1,4 +1,4 @@
-import { Activity, ChevronLeft, ClipboardCheck, Flag, Info, LayoutGrid, MessageSquare, NotebookPen, Send, Sparkles, Utensils, X } from 'lucide-react';
+import { Activity, ChevronLeft, ClipboardCheck, Flag, Info, LayoutGrid, MessageSquare, NotebookPen, Pencil, Send, Sparkles, Utensils, X } from 'lucide-react';
 import { useEffect, useMemo, useState } from 'react';
 import { useDb, useLoad, useMutation, useNow } from '../data/hooks';
 import { currentPlan, pct } from '../domain/adherence';
@@ -11,6 +11,7 @@ import { Avatar, ErrorState, Skeleton, SkeletonList, Spinner } from '../ui/kit';
 import { ActionsPanel, ActivityPanel } from './ActionsPanel';
 import { FeedbackPanel } from './FeedbackPanel';
 import { InsightPanel } from './InsightPanel';
+import { PlanEditor } from './PlanEditor';
 import { WeeklyPattern } from './WeeklyPattern';
 
 export type ActionTab = 'message' | 'adjust' | 'note';
@@ -105,7 +106,8 @@ export function ClientDetail({
                 <span>
                   Week {week} of {client.programmeWeeks}
                 </span>
-                <span>Plan v{plan?.version ?? '–'}</span>
+                <span>{plan ? `Plan v${plan.version}` : 'No plan yet'}</span>
+                <span className="ws-email">{client.email}</span>
               </p>
               <p className="goal">{client.goal}</p>
             </div>
@@ -115,9 +117,15 @@ export function ClientDetail({
               <button className="btn btn-ghost" onClick={() => act({ tab: 'message' })}>
                 <Send size={14} /> Message
               </button>
-              <button className="btn btn-ghost" onClick={() => act({ tab: 'adjust' })}>
-                <Utensils size={14} /> Change plan
-              </button>
+              {plan ? (
+                <button className="btn btn-ghost" onClick={() => act({ tab: 'adjust' })}>
+                  <Utensils size={14} /> Change a meal
+                </button>
+              ) : (
+                <button className="btn btn-primary" onClick={() => onTab('plan')}>
+                  <Utensils size={14} /> Create plan
+                </button>
+              )}
               {cs?.flag ? (
                 <button className="btn btn-ghost" disabled={flag.pending} onClick={() => flag.run((d, n) => setFlag(d, clientId, null, n), { success: 'Flag cleared' })}>
                   {flag.pending ? <Spinner /> : <X size={14} />} Clear flag
@@ -275,20 +283,24 @@ function SummaryBand({ a, newFeedback, onFeedback }: { a: Analysis; newFeedback:
   );
 }
 
-/** The current plan as the client sees it, plus its version history. */
+/** The current plan as the client sees it, plus its version history. No plan yet → the plan builder. */
 function PlanView({ clientId, onChange }: { clientId: string; onChange: (slot: MealSlot) => void }) {
   const db = useDb();
   const now = useNow();
+  const [editing, setEditing] = useState(false);
   const plan = currentPlan(db, clientId, now);
   const versions = db.plans.filter((p) => p.clientId === clientId).sort((x, y) => y.version - x.version);
   const proposed = db.adjustments.filter((x) => x.clientId === clientId && x.status === 'proposed');
-  if (!plan) return <ErrorState message="No active plan for this client." onRetry={() => undefined} />;
+  if (!plan) return <PlanEditor clientId={clientId} onDone={() => setEditing(false)} />;
+  if (editing) return <PlanEditor clientId={clientId} onDone={() => setEditing(false)} onCancel={() => setEditing(false)} />;
   return (
     <div className="ws-split ws-split-wide">
       <section className="panel" aria-labelledby="plan-title">
         <header className="panel-head">
           <h2 id="plan-title">Current plan · v{plan.version}</h2>
-          <span className="panel-meta">Since {formatDay(plan.effectiveFrom, { day: 'numeric', month: 'short' })}</span>
+          <button className="mini-btn" onClick={() => setEditing(true)}>
+            <Pencil size={12} /> Edit whole plan
+          </button>
         </header>
         <ul className="plan-meals">
           {plan.meals.map((m) => (
@@ -315,6 +327,7 @@ function PlanView({ clientId, onChange }: { clientId: string; onChange: (slot: M
       <section className="panel" aria-labelledby="versions-title">
         <header className="panel-head">
           <h2 id="versions-title">Versions</h2>
+          <span className="panel-meta">Since {formatDay(plan.effectiveFrom, { day: 'numeric', month: 'short' })}</span>
         </header>
         <ol className="versions">
           {versions.map((v) => (

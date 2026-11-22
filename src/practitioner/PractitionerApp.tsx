@@ -45,7 +45,7 @@ export function PractitionerApp({ initialClientId = null }: { initialClientId?: 
         </div>
       </aside>
       <main className="pr-body">
-        {view.kind === 'caseload' && <Roster onOpen={(id) => setView({ kind: 'client', id, tab: 'overview', from: 'caseload' })} />}
+        {view.kind === 'caseload' && <Roster onOpen={(id, tab = 'overview') => setView({ kind: 'client', id, tab, from: 'caseload' })} />}
         {view.kind === 'inbox' && <Inbox onOpen={(id) => setView({ kind: 'client', id, tab: 'feedback', from: 'inbox' })} />}
         {view.kind === 'client' && (
           <ClientDetail

@@ -22,7 +22,10 @@ import { SLOTS } from './types';
  * to match the brief exactly; the rest of the caseload is generated from
  * behaviour profiles with a deterministic PRNG.
  */
-export const SCHEMA_VERSION = 3;
+export const SCHEMA_VERSION = 4;
+
+/** Fictional sign-in addresses on a reserved example domain. */
+export const emailFor = (name: string) => `${name.toLowerCase().trim().replace(/[^a-z]+/g, '.')}@mail.example`;
 export const PRIMARY_CLIENT_ID = 'c_ananya';
 
 function mulberry32(seed: number) {
@@ -74,7 +77,8 @@ const ANANYA_MEALS: PlannedMeal[] = [
   },
 ];
 
-const GENERIC_MEALS: PlannedMeal[] = [
+/** The starter plan every new client begins on; the practitioner adjusts it from there. */
+export const GENERIC_MEALS: PlannedMeal[] = [
   { slot: 'breakfast', label: 'Breakfast', time: '08:30', title: 'Protein-forward breakfast', description: 'Vegetable poha with peanuts and a glass of buttermilk.', examples: ['Vegetable poha', 'Ragi dosa + sambar'], prepMinutes: 15 },
   { slot: 'lunch', label: 'Lunch', time: '13:30', title: 'Balanced plate', description: 'Millet roti, dal, mixed vegetable sabzi and salad.', examples: ['Millet roti + dal + sabzi'], prepMinutes: 25 },
   { slot: 'snack', label: 'Afternoon snack', time: '17:00', title: 'Light protein snack', description: 'Handful of nuts and a fruit.', examples: ['Almonds + apple', 'Buttermilk + roasted makhana'], prepMinutes: 2 },
@@ -226,6 +230,7 @@ export function createSeed(now: Date = new Date(), extraClients = 0): Database {
   const ananya: Client = {
     id: PRIMARY_CLIENT_ID,
     name: 'Ananya Rao',
+    email: emailFor('Ananya Rao'),
     age: 34,
     occupation: 'Corporate professional',
     goal: 'Improve metabolic health and build sustainable eating habits',
@@ -322,6 +327,7 @@ export function createSeed(now: Date = new Date(), extraClients = 0): Database {
     const client: Client = {
       id,
       name,
+      email: emailFor(name),
       age,
       occupation,
       goal,
@@ -375,6 +381,7 @@ export function createSeed(now: Date = new Date(), extraClients = 0): Database {
   const divya: Client = {
     id: 'c_divya',
     name: 'Divya Menon',
+    email: emailFor('Divya Menon'),
     age: 31,
     occupation: 'Product designer',
     goal: 'Build a regular eating routine',

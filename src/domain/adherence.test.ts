@@ -1,7 +1,7 @@
 import { analyse } from './insights';
 import { buildCells, summarize } from './adherence';
-import { applyAdjustment, logMeal, markReviewed, proposeAdjustment, ValidationError } from './commands';
-import { createSeed, PRIMARY_CLIENT_ID } from './seed';
+import { addClient, publishPlan, applyAdjustment, logMeal, markReviewed, proposeAdjustment, ValidationError } from './commands';
+import { createSeed, GENERIC_MEALS, PRIMARY_CLIENT_ID } from './seed';
 import { addDays, lastNDays, toDateKey } from './time';
 
 // Fixed "now": a Saturday afternoon, so the window contains 5 workdays + 2 weekend days.
@@ -89,5 +89,56 @@ describe('commands', () => {
     const later = new Date(NOW.getTime() + 60_000);
     logMeal(db, { clientId: ID, date: toDateKey(NOW), slot: 'lunch', status: 'followed' }, later);
     expect(analyse(db, ID, later).newSinceReview).toBe(true);
+  });
+});
+
+describe('adding a client and sharing their plan', () => {
+  const input = { id: 'c_new', name: '  Asha   Verma ', email: ' Asha.Verma@Mail.Example ', age: 31, occupation: 'Nurse', goal: 'More energy on night shifts', programmeWeeks: 6 };
+
+  it('adds the client with no plan and flags it for the practitioner', () => {
+    const db = addClient(createSeed(NOW), input, NOW);
+    const c = db.clients.find((x) => x.id === 'c_new')!;
+    expect(c.name).toBe('Asha Verma');
+    expect(c.email).toBe('asha.verma@mail.example');
+    expect(c.programmeStart).toBe(toDateKey(NOW));
+    expect(db.plans.filter((p) => p.clientId === 'c_new')).toHaveLength(0);
+    const a = analyse(db, 'c_new', NOW);
+    expect(a.summary.due).toBe(0);
+    expect(a.triggers.map((t) => t.code)).toEqual(['no_plan']);
+    expect(a.priority).toBeGreaterThanOrEqual(20);
+  });
+
+  it('rejects missing fields and duplicates', () => {
+    const db = createSeed(NOW);
+    expect(() => addClient(db, { ...input, name: 'A' }, NOW)).toThrow(ValidationError);
+    expect(() => addClient(db, { ...input, email: 'not-an-email' }, NOW)).toThrow(/valid email/);
+    expect(() => addClient(db, { ...input, age: 7 }, NOW)).toThrow(ValidationError);
+    expect(() => addClient(db, { ...input, goal: ' ' }, NOW)).toThrow(ValidationError);
+    expect(() => addClient(db, { ...input, name: 'ananya rao' }, NOW)).toThrow(/already in your caseload/);
+    expect(() => addClient(db, { ...input, email: 'ananya.rao@mail.example' }, NOW)).toThrow(/already belongs to Ananya Rao/);
+  });
+
+  it('shares v1, then a new version that only marks the meals that changed', () => {
+    let db = addClient(createSeed(NOW), input, NOW);
+    db = publishPlan(db, { clientId: 'c_new', meals: GENERIC_MEALS }, NOW);
+    let plans = db.plans.filter((p) => p.clientId === 'c_new');
+    expect(plans.map((p) => p.version)).toEqual([1]);
+    expect(analyse(db, 'c_new', NOW).triggers.map((t) => t.code)).not.toContain('no_plan');
+    expect(db.messages.at(-1)!.planVersion).toBe(1);
+
+    const edited = GENERIC_MEALS.map((m) => (m.slot === 'snack' ? { ...m, title: 'Roasted chana pouch', prepMinutes: 0 } : m));
+    db = publishPlan(db, { clientId: 'c_new', meals: edited }, NOW);
+    plans = db.plans.filter((p) => p.clientId === 'c_new').sort((x, y) => x.version - y.version);
+    expect(plans[1].version).toBe(2);
+    expect(plans[1].changedSlots).toEqual(['snack']);
+    expect(() => publishPlan(db, { clientId: 'c_new', meals: edited }, NOW)).toThrow(/Nothing has changed/);
+  });
+
+  it('refuses a plan with a missing name or out-of-order times', () => {
+    const db = addClient(createSeed(NOW), input, NOW);
+    const noName = GENERIC_MEALS.map((m) => (m.slot === 'lunch' ? { ...m, title: ' ' } : m));
+    expect(() => publishPlan(db, { clientId: 'c_new', meals: noName }, NOW)).toThrow(/lunch a name/);
+    const badOrder = GENERIC_MEALS.map((m) => (m.slot === 'dinner' ? { ...m, time: '07:00' } : m));
+    expect(() => publishPlan(db, { clientId: 'c_new', meals: badOrder }, NOW)).toThrow(/in order/);
   });
 });

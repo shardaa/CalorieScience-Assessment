@@ -9,6 +9,8 @@ A working prototype of the feedback loop between a client following a meal plan 
 > 2. In the drawer that slides in: **Start from a suggested adjustment** → **Record proposed adjustment** → **Apply to plan & notify**. The *Meal plan* tab now shows v2.
 > 3. Ananya's phone now shows a *Your plan was updated* card, the snack card reads **Portable protein snack · Updated by Neha**, and Messages has a badge.
 > 4. On the phone, tap **Something changed** on Lunch → *Had something else* → "Ordered in" → Save. The practitioner's activity feed and grid update straight away.
+>
+> **Onboard a new client:** Caseload → **Add client** (name, email, age, goal, length) → their *Meal plan* tab opens with the plan builder (starter meals prefilled) → **Share plan**. On the phone, tap Ananya's avatar → **Sign out** → sign in with the new client's email: they see their own plan and a "Your meal plan is ready" card.
 
 ---
 
@@ -43,14 +45,14 @@ src/
     types.ts         Data model
     adherence.ts     Planned-vs-actual cells, due logic, adherence summary
     insights.ts      Rules engine: observations / interpretations / considerations / triggers
-    commands.ts      State transitions (logMeal, sendFeedback, applyAdjustment, …)
+    commands.ts      State transitions (addClient, publishPlan, logMeal, sendFeedback, applyAdjustment, …)
     seed.ts          Scenario data relative to today + generated caseload
     adherence.test.ts
   data/
     backend.ts       Simulated API: localStorage persistence, latency, failure, cross-tab sync
     hooks.tsx        useDb (useSyncExternalStore), useLoad, useMutation, toasts
-  client/            Companion App: Today (up-next card, day list, centre + to log), Plan, My week (check-in bars), Messages, LogSheet
-  practitioner/      Sidebar shell, Roster (caseload), Inbox (all client feedback), ClientDetail (tabs: Overview,
+  client/            Companion App: Today (up-next card, day list), Plan, My week (check-in bars), Messages, LogSheet
+  practitioner/      Sidebar shell, Roster (caseload, Add client drawer), Inbox (all client feedback), ClientDetail (tabs: Overview,
                      Feedback, Meal plan, Notes & activity; actions in a slide-over drawer), InsightPanel,
                      WeeklyPattern, FeedbackPanel, ActionsPanel
   ui/kit.tsx         Status icons/pills, skeletons, empty/error states
@@ -74,7 +76,7 @@ src/
 ## Data model
 
 ```
-Client ─┬─< MealPlan (versioned, effectiveFrom)  ──< PlannedMeal (slot, time, title, description, examples, prepMinutes)
+Client (email) ─┬─< MealPlan (versioned, effectiveFrom)  ──< PlannedMeal (slot, time, title, description, examples, prepMinutes)
         ├─< MealLog  (date, slot, status, substitute?, reasons[], hunger?, prepDifficulty?, actualTime?, comment?,
         │             planVersion + plannedTitle  ← snapshot of what was planned when logged)
         ├─< Message  (author client|practitioner, kind feedback|recommendation|reply, slot?, topic?,
@@ -157,7 +159,7 @@ Priority = sum of severities (high 30, medium 12). **If the practitioner has rev
 | Backend + DB (`data/backend.ts`, localStorage) | Postgres (e.g. Supabase) with the same tables. Commands become API endpoints with server-side validation and row-level security per practitioner. |
 | Latency and failures | Real network. Mutations would add an offline queue on mobile (log now, sync later). |
 | Real-time sync (`BroadcastChannel`) | Websocket/SSE subscriptions for the dashboard, plus **push notifications** to the client for practitioner messages and plan updates. |
-| Auth | Not built (per brief). The routes stand in for "logged in as client" and "logged in as practitioner". |
+| Auth | Clients **sign in with their email** (`data/session.ts`), but no code or password is checked; the demo starts signed in as Ananya. Production: magic link or one-time code, and a real invite email when the practitioner adds a client. The practitioner side has no login (routes stand in for it). |
 | Insight computation on read | Computed on log write and cached as a per-client summary, so the roster is one indexed query at 100+ clients. |
 | Meal content | Static text per slot. No nutrition database (per brief). |
 

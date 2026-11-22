@@ -1,6 +1,7 @@
-import { Check, ChevronDown, ChevronRight, Clock, Pencil, Sparkles } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Check, ChevronDown, ChevronRight, Clock, LogOut, Pencil, Sparkles } from 'lucide-react';
+import { useState } from 'react';
 import { useDb, useMutation, useNow } from '../data/hooks';
+import { session } from '../data/session';
 import { buildCells, currentPlan, type Cell } from '../domain/adherence';
 import { logMeal, markRecommendationSeen } from '../domain/commands';
 import { CLIENT_STATUS_LABEL } from '../domain/labels';
@@ -15,23 +16,14 @@ function greeting(now: Date) {
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 
-export function TodayScreen({
-  client,
-  onTell,
-  logRequest = 0,
-  onLogHandled,
-}: {
-  client: Client;
-  onTell: (d: Draft) => void;
-  logRequest?: number;
-  onLogHandled?: () => void;
-}) {
+export function TodayScreen({ client, onTell }: { client: Client; onTell: (d: Draft) => void }) {
   const db = useDb();
   const now = useNow();
   const today = toDateKey(now);
   const plan = currentPlan(db, client.id, now);
   const cells = buildCells(db, client.id, [today], now);
   const [sheet, setSheet] = useState<Cell | null>(null);
+  const [menu, setMenu] = useState(false);
   const practitioner = db.practitioner.name.split(' ')[0];
 
   const week = Math.min(client.programmeWeeks, Math.floor(daysBetween(client.programmeStart, today) / 7) + 1);
@@ -39,14 +31,6 @@ export function TodayScreen({
   const nowMin = minutesOf(clockNow(now));
   // "Up next": the first unlogged meal whose time is within reach (or already passed).
   const upNext = cells.find((c) => !c.log && minutesOf(c.planned.time) - 120 <= nowMin) ?? cells.find((c) => !c.log);
-  // The centre "+" in the tab bar asks to log the next meal.
-  // The request is consumed once, so coming back to Today later doesn't reopen the sheet.
-  useEffect(() => {
-    if (!logRequest) return;
-    setSheet(upNext ?? cells.find((c) => !c.log) ?? null);
-    onLogHandled?.();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [logRequest]);
 
   const unseen = db.messages
     .filter((m) => m.clientId === client.id && m.author === 'practitioner' && !m.seenByClientAt)
@@ -58,9 +42,35 @@ export function TodayScreen({
       .filter((m) => m.clientId === client.id && m.author === 'practitioner' && m.slot === slot && daysBetween(m.createdAt.slice(0, 10), today) <= 14)
       .sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1))[0];
 
+  const header = (
+    <header className="client-header today-head">
+      <div>
+        <h1>Hello, {client.name.split(' ')[0]}!</h1>
+        <p className="hello-sub">
+          {greeting(now)} · {formatLongDate(today)}
+        </p>
+      </div>
+      <div className="account">
+        <button className="account-btn" onClick={() => setMenu((o) => !o)} aria-expanded={menu} aria-label="Account">
+          <Avatar name={client.name} hue={client.avatarHue} size={46} />
+        </button>
+        {menu && (
+          <div className="account-menu" role="menu">
+            <strong>{client.name}</strong>
+            <span className="muted small">{client.email}</span>
+            <button className="btn btn-ghost btn-block" role="menuitem" onClick={() => session.signOut()}>
+              <LogOut size={14} /> Sign out
+            </button>
+          </div>
+        )}
+      </div>
+    </header>
+  );
+
   if (!plan) {
     return (
       <div className="client-pad">
+        {header}
         <EmptyState icon={<Clock size={28} />} title="Your plan isn't ready yet">
           {practitioner} is preparing your meal plan. You'll see it here as soon as it's shared.
         </EmptyState>
@@ -72,15 +82,7 @@ export function TodayScreen({
 
   return (
     <div className="client-pad enter">
-      <header className="client-header today-head">
-        <div>
-          <h1>Hello, {client.name.split(' ')[0]}!</h1>
-          <p className="hello-sub">
-            {greeting(now)} · {formatLongDate(today)}
-          </p>
-        </div>
-        <Avatar name={client.name} hue={client.avatarHue} size={46} />
-      </header>
+      {header}
 
       <section className="goal-card" aria-label={`${logged} of ${cells.length} meals logged today`}>
         <div className="goal-text">
@@ -153,7 +155,7 @@ function PractitionerCard({ message, from }: { message: Message; from: string })
       <div className="pr-card-head">
         <Sparkles size={16} />
         <span>
-          {message.adjustmentId ? 'Your plan was updated' : message.inReplyTo ? `${from.split(' ')[0]} replied` : `New from ${from.split(' ')[0]}`}
+          {message.planVersion === 1 ? 'Your meal plan is ready' : message.adjustmentId || message.planVersion ? 'Your plan was updated' : message.inReplyTo ? `${from.split(' ')[0]} replied` : `New from ${from.split(' ')[0]}`}
         </span>
       </div>
       <p>{message.body}</p>

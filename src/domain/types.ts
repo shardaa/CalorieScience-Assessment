@@ -44,6 +44,8 @@ export interface MealPlan {
 export interface Client {
   id: string;
   name: string;
+  /** Sign-in identity for the Companion app. */
+  email: string;
   age: number;
   occupation: string;
   goal: string;
@@ -108,6 +110,8 @@ export interface Message {
   inReplyTo?: string;
   /** Link to the plan adjustment this message announces, if any. */
   adjustmentId?: string;
+  /** Plan version this message announces when a whole plan was shared. */
+  planVersion?: number;
 }
 
 export interface PractitionerNote {
@@ -140,6 +144,8 @@ export interface CaseState {
 }
 
 export type ActivityType =
+  | 'client_added'
+  | 'plan_published'
   | 'meal_logged'
   | 'feedback_sent'
   | 'recommendation_sent'

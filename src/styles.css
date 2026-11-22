@@ -858,14 +858,11 @@ button.roster-row:hover, .inbox-row:hover { background: rgb(255 255 255 / 55%); 
 .day-check:hover:not(:disabled) { background: var(--brand-ink); }
 .tell-card { background: var(--glass); border-color: rgb(31 148 97 / 30%); }
 
-/* floating tab bar with a centre action */
+/* floating tab bar */
 .tabbar { background: rgb(255 255 255 / 86%); border-color: var(--glass-line); border-radius: 26px; align-items: center; padding: 6px 8px; }
 .tab { color: var(--faint); font-weight: 600; font-size: 11px; background: none !important; }
 .tab-active { color: var(--brand); }
 .tab-active .tab-icon { background: none; }
-.tab-plus { flex: none; width: 54px; height: 54px; margin: -26px 4px 0; border-radius: 50%; border: 4px solid #fff; background: var(--brand); color: #fff; display: inline-flex; align-items: center; justify-content: center; box-shadow: 0 10px 22px rgb(31 148 97 / 38%); transition: transform 0.18s var(--ease), background 0.15s; }
-.tab-plus:hover { transform: translateY(-2px) scale(1.04); background: var(--brand-ink); }
-.tab-plus:active { transform: scale(0.95); }
 
 /* plan screen */
 .plan-note { display: flex; gap: 8px; align-items: center; font-size: 13px; font-weight: 600; color: var(--brand-ink); background: var(--brand-soft); border-radius: 14px; padding: 10px 12px; }
@@ -967,3 +964,47 @@ button.roster-row:hover, .inbox-row:hover { background: rgb(255 255 255 / 55%); 
   .cell-time { font-size: 8.5px; }
   .col-sum small { font-size: 10px; line-height: 1.25; display: block; }
 }
+
+/* caseload tools + add client */
+.page-tools { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.page-tools .btn { min-height: 40px; }
+.drawer-title { display: flex; align-items: center; gap: 8px; font-size: 17px; }
+.add-form { padding: 18px; gap: 14px; }
+.starter { background: var(--brand-soft); border-radius: var(--r); padding: 12px 14px; display: flex; flex-direction: column; gap: 6px; }
+.starter-title { font-weight: 700; font-size: 13px; color: var(--brand-ink); }
+.starter ul { display: flex; flex-direction: column; gap: 3px; font-size: 13px; }
+.starter li span { display: inline-block; width: 68px; color: var(--muted); font-size: 12px; }
+@container (max-width: 900px) { .page-tools { width: 100%; } .page-tools .search { flex: 1; width: auto; } }
+
+/* sign in */
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.signin { height: 100%; overflow-y: auto; display: flex; flex-direction: column; gap: 14px; padding: 26px 22px 28px; background: var(--grad-app); }
+.signin-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; }
+.signin-brand .brand-mark { width: 32px; height: 32px; }
+.signin-hero { display: flex; justify-content: center; gap: 14px; margin: 18px 0 6px; }
+.signin-hero span { width: 74px; height: 74px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 36px; background: radial-gradient(circle at 35% 30%, #fff 0%, #e3f4e8 75%); box-shadow: inset 0 0 0 5px #fff, var(--shadow-2); }
+.signin-hero span:nth-child(2) { transform: translateY(-14px); background: radial-gradient(circle at 35% 30%, #fff 0%, #fde1cf 75%); }
+.signin-hero span:nth-child(3) { background: radial-gradient(circle at 35% 30%, #fff 0%, #fdeccd 75%); }
+.signin h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.035em; line-height: 1.15; }
+.signin-form { display: flex; flex-direction: column; gap: 12px; background: var(--glass-strong); border: 1px solid var(--glass-line); border-radius: var(--r-lg); padding: 16px; box-shadow: var(--shadow-2); }
+.signin-form .btn { min-height: 46px; font-size: 15px; }
+.signin-demo { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
+.signin-demo .chip { font-size: 11.5px; padding: 5px 10px; }
+
+/* client account menu */
+.account { position: relative; }
+.account-btn { border: none; background: none; padding: 0; border-radius: 50%; }
+.account-menu { position: absolute; right: 0; top: calc(100% + 8px); width: 230px; z-index: 12; background: var(--glass-strong); backdrop-filter: blur(18px); border: 1px solid var(--glass-line); border-radius: var(--r); box-shadow: var(--shadow-3); padding: 12px; display: flex; flex-direction: column; gap: 4px; animation: rise 0.15s var(--ease); overflow-wrap: anywhere; }
+.account-menu strong { font-weight: 700; }
+.account-menu .btn { margin-top: 8px; }
+
+/* practitioner: email + plan builder */
+.ws-email { color: var(--brand-ink); }
+.field-hint { font-size: 11.5px; color: var(--muted); }
+.plan-editor { gap: 16px; }
+.pe-meals { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.pe-meal { display: flex; flex-direction: column; gap: 10px; background: rgb(255 255 255 / 65%); border: 1px solid var(--glass-line); border-radius: var(--r); padding: 14px; }
+.pe-meal-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.pe-meal-head strong { font-size: 15px; font-weight: 800; }
+.pe-time input { border: 1px solid var(--line-2); background: #fff; border-radius: 999px; padding: 5px 10px; font-weight: 600; color: var(--brand-ink); }
+@container (max-width: 760px) { .pe-meals { grid-template-columns: 1fr; } }

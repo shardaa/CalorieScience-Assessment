@@ -12,7 +12,9 @@ import type {
   MealSlot,
   Message,
   PlanAdjustment,
+  PlannedMeal,
 } from './types';
+import { SLOTS } from './types';
 
 /**
  * Commands are pure (db, input, now) → db transitions. The mock API runs them;
@@ -228,5 +230,105 @@ export function discardAdjustment(db: Database, adjustmentId: string, now: Date)
   adj.status = 'discarded';
   adj.resolvedAt = now.toISOString();
   event(db, { clientId: adj.clientId, at: adj.resolvedAt, actor: 'practitioner', type: 'adjustment_discarded', summary: `Discarded proposed change to ${SLOT_LABEL[adj.slot].toLowerCase()}` });
+  return db;
+}
+
+export interface NewClientInput {
+  id?: string;
+  name: string;
+  email: string;
+  age: number;
+  occupation: string;
+  goal: string;
+  programmeWeeks: number;
+}
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/**
+ * Adds a client with no plan yet. They can sign in with their email straight away
+ * and will see "your plan isn't ready" until the practitioner shares one.
+ */
+export function addClient(db: Database, input: NewClientInput, now: Date): Database {
+  const name = input.name.trim().replace(/\s+/g, ' ');
+  const email = input.email.trim().toLowerCase();
+  const goal = input.goal.trim();
+  if (name.length < 2) throw new ValidationError("Enter the client's full name.");
+  if (name.length > 60) throw new ValidationError('Keep the name under 60 characters.');
+  if (!EMAIL_RE.test(email)) throw new ValidationError('Enter a valid email address. The client signs in with it.');
+  if (!Number.isInteger(input.age) || input.age < 12 || input.age > 100) throw new ValidationError('Enter an age between 12 and 100.');
+  if (!goal) throw new ValidationError('Add a goal for the programme. A short phrase is enough.');
+  if (![4, 6, 8, 12].includes(input.programmeWeeks)) throw new ValidationError('Choose a programme length.');
+  const existing = db.clients.find((c) => c.name.toLowerCase() === name.toLowerCase());
+  if (existing) throw new ValidationError(`${existing.name} is already in your caseload.`);
+  const sameEmail = db.clients.find((c) => c.email === email);
+  if (sameEmail) throw new ValidationError(`That email already belongs to ${sameEmail.name}.`);
+
+  const id = input.id ?? newId('c');
+  const today = toDateKey(now);
+  const avatarHue = [...name].reduce((h, ch) => (h * 31 + ch.charCodeAt(0)) % 360, 7);
+  db.clients.push({ id, name, email, age: input.age, occupation: input.occupation.trim() || 'Not specified', goal, programmeStart: today, programmeWeeks: input.programmeWeeks, avatarHue });
+  caseState(db, id);
+  event(db, { clientId: id, at: now.toISOString(), actor: 'practitioner', type: 'client_added', summary: `Added ${name} (${email}) · ${input.programmeWeeks}-week programme` });
+  return db;
+}
+
+export interface PublishPlanInput {
+  clientId: string;
+  meals: PlannedMeal[];
+  /** Optional note sent to the client with the plan. */
+  message?: string;
+}
+
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/**
+ * Shares a whole plan: the first plan (v1) or a new version effective today.
+ * Past logs keep the version they were logged against.
+ */
+export function publishPlan(db: Database, input: PublishPlanInput, now: Date): Database {
+  const client = db.clients.find((c) => c.id === input.clientId);
+  if (!client) throw new ValidationError('Client not found.');
+  const meals: PlannedMeal[] = [];
+  for (const slot of SLOTS) {
+    const m = input.meals.find((x) => x.slot === slot);
+    const label = SLOT_LABEL[slot];
+    if (!m || !m.title.trim()) throw new ValidationError(`Give ${label.toLowerCase()} a name.`);
+    if (!TIME_RE.test(m.time)) throw new ValidationError(`Set a time for ${label.toLowerCase()}.`);
+    if (!Number.isFinite(m.prepMinutes) || m.prepMinutes < 0 || m.prepMinutes > 240) throw new ValidationError(`Prep time for ${label.toLowerCase()} should be 0–240 minutes.`);
+    meals.push({
+      slot,
+      label,
+      time: m.time,
+      title: m.title.trim(),
+      description: m.description.trim(),
+      examples: m.examples.map((e) => e.trim()).filter(Boolean),
+      prepMinutes: Math.round(m.prepMinutes),
+    });
+  }
+  const times = meals.map((m) => m.time);
+  for (let i = 1; i < times.length; i++) if (times[i] <= times[i - 1]) throw new ValidationError('Meal times should run in order through the day.');
+
+  const today = toDateKey(now);
+  const previous = db.plans.filter((p) => p.clientId === client.id).sort((a, b) => b.version - a.version)[0];
+  const version = previous ? previous.version + 1 : 1;
+  const changedSlots = previous
+    ? meals.filter((m) => JSON.stringify(m) !== JSON.stringify(previous.meals.find((p) => p.slot === m.slot))).map((m) => m.slot)
+    : undefined;
+  if (previous && changedSlots!.length === 0) throw new ValidationError('Nothing has changed from the current plan.');
+
+  db.plans.push({ id: newId('plan'), clientId: client.id, version, effectiveFrom: today, meals, createdAt: now.toISOString(), changeNote: previous ? 'Plan edited' : 'First plan', changedSlots });
+  const first = client.name.split(' ')[0];
+  const body =
+    input.message?.trim() ||
+    (previous ? `Hi ${first}, I've updated your meal plan. Have a look at the changes in the Plan tab.` : `Hi ${first}, your meal plan is ready. Open the Plan tab to see your meals and the options for each.`);
+  db.messages.push({ id: newId('msg'), clientId: client.id, author: 'practitioner', kind: 'recommendation', body, createdAt: now.toISOString(), planVersion: version });
+  event(db, {
+    clientId: client.id,
+    at: now.toISOString(),
+    actor: 'practitioner',
+    type: 'plan_published',
+    summary: previous ? `Shared plan v${version} (${changedSlots!.map((s) => SLOT_LABEL[s]).join(', ')} changed)` : 'Shared the first meal plan',
+  });
   return db;
 }
