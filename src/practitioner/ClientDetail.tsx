@@ -1,10 +1,10 @@
-import { ChevronLeft, ClipboardCheck, Flag, X } from 'lucide-react';
+import { ChevronLeft, ClipboardCheck, Flag, Info, Sparkles, X } from 'lucide-react';
 import { useMemo, useRef, useState } from 'react';
 import { useDb, useLoad, useMutation, useNow } from '../data/hooks';
-import { currentPlan } from '../domain/adherence';
+import { currentPlan, pct } from '../domain/adherence';
 import { markReviewed, setFlag } from '../domain/commands';
-import { analyse } from '../domain/insights';
-import { daysBetween, relativeTime, toDateKey } from '../domain/time';
+import { analyse, type Analysis } from '../domain/insights';
+import { daysBetween, formatDay, relativeTime, toDateKey } from '../domain/time';
 import type { MealSlot } from '../domain/types';
 import { Avatar, ErrorState, Skeleton, SkeletonList, Spinner } from '../ui/kit';
 import { ActionsPanel, ActivityPanel } from './ActionsPanel';
@@ -62,7 +62,7 @@ export function ClientDetail({ clientId, onBack }: { clientId: string; onBack: (
   const week = Math.min(client.programmeWeeks, Math.floor(daysBetween(client.programmeStart, toDateKey(now)) / 7) + 1);
 
   return (
-    <div className="pr-page">
+    <div className="pr-page enter">
       <button className="back" onClick={onBack}>
         <ChevronLeft size={15} /> Caseload
       </button>
@@ -141,18 +141,20 @@ export function ClientDetail({ clientId, onBack }: { clientId: string; onBack: (
         </div>
       </header>
 
+      <SummaryBand a={a} newFeedback={a.openFeedback.filter((m) => m.status === 'new').length} />
+
       <div className="detail-grid">
-        {/* `order` interleaves the two columns when they collapse to one: insight → feedback → pattern → actions. */}
+        {/* `order` interleaves the two columns when they collapse to one: pattern → findings → feedback → actions → activity. */}
         <div className="detail-main">
           <div style={{ order: 1 }}>
-            <InsightPanel a={a} onAct={act} />
-          </div>
-          <div style={{ order: 3 }}>
             <WeeklyPattern a={a} clientId={clientId} />
+          </div>
+          <div style={{ order: 2 }}>
+            <InsightPanel a={a} onAct={act} />
           </div>
         </div>
         <aside className="detail-side">
-          <div style={{ order: 2 }}>
+          <div style={{ order: 3 }}>
             <FeedbackPanel a={a} clientId={clientId} onReply={(m) => act({ tab: 'message', slot: m.slot, replyTo: m.id })} />
           </div>
           <div style={{ order: 4, scrollMarginTop: 12 }} ref={actionsRef}>
@@ -164,5 +166,43 @@ export function ClientDetail({ clientId, onBack }: { clientId: string; onBack: (
         </aside>
       </div>
     </div>
+  );
+}
+
+/** The one-paragraph read of the week, with the two adherence numbers kept apart. */
+function SummaryBand({ a, newFeedback }: { a: Analysis; newFeedback: number }) {
+  const s = a.summary;
+  return (
+    <section className="summary-band" aria-labelledby="summary-title">
+      <div className="summary-text">
+        <p className="eyebrow" id="summary-title">
+          <Sparkles size={13} /> This week in one paragraph · {formatDay(a.window[0], { day: 'numeric', month: 'short' })} – {formatDay(a.window[6], { day: 'numeric', month: 'short' })}
+        </p>
+        <p className="headline">{a.headline}</p>
+        <p className="disclaimer">
+          <Info size={12} /> Built from client-reported logs and messages by fixed rules. It describes patterns and makes no clinical judgement.
+        </p>
+      </div>
+      <dl className="summary-stats">
+        <div>
+          <dt>Logged</dt>
+          <dd className={s.completeness !== null && s.completeness < 0.6 ? 'warn' : ''}>
+            {s.logged}
+            <span>/{s.due}</span>
+          </dd>
+          <p>{pct(s.completeness)} of planned meals have a log</p>
+        </div>
+        <div>
+          <dt>Plan alignment</dt>
+          <dd>{pct(s.alignment)}</dd>
+          <p>{s.logged ? `of ${s.logged} logged meals; partial and swapped count half` : 'Nothing logged yet'}</p>
+        </div>
+        <div>
+          <dt>Client feedback</dt>
+          <dd className={newFeedback ? 'accent' : ''}>{newFeedback ? `${newFeedback} new` : '0'}</dd>
+          <p>{newFeedback ? 'Unread message from the client' : 'Nothing waiting for you'}</p>
+        </div>
+      </dl>
+    </section>
   );
 }

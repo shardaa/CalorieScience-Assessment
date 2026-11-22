@@ -5,7 +5,7 @@
 A working prototype of the feedback loop between a client following a meal plan (**Companion App**, mobile) and their nutrition practitioner (**CalorieScience dashboard**, desktop). Both sides share one live data store, so anything the client logs shows up on the practitioner side, and anything the practitioner changes shows up in the client's app.
 
 > **Try the loop in 60 seconds** (split view at `/`):
-> 1. Dashboard → Ananya → under *Observed in logs*, click **Act on this** next to "Afternoon snack skipped on 4 of 7 logged days".
+> 1. Dashboard → Ananya → in *What the logs show → Observed*, click **Act on this** next to "Afternoon snack skipped on 4 of 7 logged days".
 > 2. **Start from a suggested adjustment** → **Record proposed adjustment** → **Apply to plan & notify**.
 > 3. Ananya's phone now shows a *Your plan was updated* card, the snack card reads **Portable protein snack · Updated by Neha**, and Messages has a badge.
 > 4. On the phone, tap **Something changed** on Lunch → *Had something else* → "Ordered in" → Save. The practitioner's activity feed and grid update straight away.
@@ -63,7 +63,7 @@ src/
 | Choice | Why |
 |---|---|
 | React 18 + TypeScript + Vite | Fast to build in. Strict types keep the data model honest. |
-| No UI framework, plain CSS with custom properties and **container queries** | The practitioner dashboard has to adapt to the *pane* it sits in (split view vs full screen), not just the viewport. |
+| No UI framework, plain CSS with custom properties and **container queries**. Palette ("Frost and slate", teal accent) and type (Geist + Geist Mono) dealt by the tasteskill design skill for a software product | The practitioner dashboard has to adapt to the *pane* it sits in (split view vs full screen), not just the viewport. |
 | No router library | Three routes. A 10-line hash router is enough. |
 | `lucide-react` icons | Status is always shown as **icon + label**, never colour alone. |
 | Vitest | Tests the domain layer without a DOM. |
@@ -114,7 +114,7 @@ Weights: **followed 1 · partial 0.5 · substituted 0.5 · skipped 0**.
 
 | Tier | Rule of thumb | UI treatment |
 |---|---|---|
-| **Observed in logs** | Counted directly. Always carries "N of M". | Plain text, coloured left border by tone |
+| **Observed** | Counted directly. Always carries "N of M". | Plain rows with a tone dot |
 | **Possible explanations** | Built only from observations, linked by id | Dashed amber box, italic, **"not confirmed"** badge |
 | **Worth considering** | Phrased as things to review or ask, never as clinical advice | With a "Draft change" button |
 | **Data quality** | Logging gaps and their size | Grey note: "treated as unknown, not counted as skipped" |

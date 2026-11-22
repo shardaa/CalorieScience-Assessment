@@ -1,4 +1,4 @@
-import { LayoutDashboard } from 'lucide-react';
+import { LayoutDashboard, Leaf } from 'lucide-react';
 import { useState } from 'react';
 import { useDb } from '../data/hooks';
 import { Avatar } from '../ui/kit';
@@ -13,12 +13,14 @@ export function PractitionerApp({ initialClientId = null }: { initialClientId?: 
     <div className="pr-app">
       <header className="pr-topbar">
         <button className="brand" onClick={() => setSelected(null)}>
-          <span className="brand-mark">CS</span>
+          <span className="brand-mark" aria-hidden>
+            <Leaf size={13} />
+          </span>
           CalorieScience
         </button>
         <nav className="pr-nav">
           <button className={`pr-nav-item ${!selected ? 'is-on' : ''}`} onClick={() => setSelected(null)}>
-            <LayoutDashboard size={15} /> Adherence
+            <LayoutDashboard size={15} /> Caseload
           </button>
         </nav>
         <div className="pr-user">

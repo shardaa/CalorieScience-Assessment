@@ -1,4 +1,4 @@
-import { Columns2, ExternalLink, LayoutDashboard, RotateCcw, SlidersHorizontal, Smartphone, Users, WifiOff, X } from 'lucide-react';
+import { ArrowUpRight, LayoutDashboard, Leaf, RotateCcw, SlidersHorizontal, Smartphone, Users, WifiOff, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ClientApp } from './client/ClientApp';
 import { backend } from './data/backend';
@@ -40,11 +40,14 @@ export function App() {
   return (
     <div className="demo">
       <header className="demo-bar">
-        <div className="demo-title">
-          <Columns2 size={16} />
-          <strong>Companion adherence workflow</strong>
-          <span className="muted">Both apps share one live data store. Actions on one side appear on the other.</span>
+        <div className="demo-brand">
+          <span className="brand-mark" aria-hidden>
+            <Leaf size={14} />
+          </span>
+          <strong>CalorieScience</strong>
+          <span className="demo-tag">Companion · live prototype</span>
         </div>
+        <p className="demo-sub">One shared data store. Log a meal on the phone or change the plan on the dashboard, and the other side updates.</p>
         <div className="demo-switch" role="tablist" aria-label="Pane">
           <button role="tab" aria-selected={mobilePane === 'client'} className={mobilePane === 'client' ? 'is-on' : ''} onClick={() => setMobilePane('client')}>
             <Smartphone size={14} /> Client
@@ -53,29 +56,30 @@ export function App() {
             <LayoutDashboard size={14} /> Practitioner
           </button>
         </div>
-        <nav className="demo-links">
+        <nav className="demo-links" aria-label="Open separately">
           <a href="#/client" target="_blank" rel="noreferrer">
-            Client app <ExternalLink size={12} />
+            Client app <ArrowUpRight size={13} />
           </a>
           <a href="#/practitioner" target="_blank" rel="noreferrer">
-            Dashboard <ExternalLink size={12} />
+            Dashboard <ArrowUpRight size={13} />
           </a>
         </nav>
       </header>
       <div className={`demo-panes show-${mobilePane}`}>
         <section className="pane-client" aria-label="Client Companion App (Ananya)">
           <p className="pane-label">
-            <Smartphone size={13} /> Ananya's Companion App
+            <span className="pane-dot" /> Ananya · Companion app
           </p>
           <div className="phone">
+            <span className="phone-island" aria-hidden />
             <ClientApp clientId={PRIMARY_CLIENT_ID} />
           </div>
         </section>
         <section className="pane-practitioner" aria-label="Practitioner dashboard">
           <p className="pane-label">
-            <LayoutDashboard size={13} /> CalorieScience · practitioner
+            <span className="pane-dot pane-dot-pr" /> Neha · Practitioner dashboard
           </p>
-          <div className="browser">
+          <div className="app-window">
             <PractitionerApp initialClientId={PRIMARY_CLIENT_ID} />
           </div>
         </section>

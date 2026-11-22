@@ -53,7 +53,7 @@ export function TodayScreen({ client, onTell }: { client: Client; onTell: (d: Dr
   const isUpdated = (c: Cell) => plan.changedSlots?.includes(c.slot) && daysBetween(plan.effectiveFrom, today) <= 7 && c.planVersion === plan.version;
 
   return (
-    <div className="client-pad">
+    <div className="client-pad enter">
       <header className="client-header">
         <p className="eyebrow">
           {formatLongDate(today)} · Week {week} of {client.programmeWeeks}
@@ -150,15 +150,35 @@ function MealCard({
       success: `${planned.label} logged`,
     });
 
+  if (log) {
+    return (
+      <li className={`meal-card meal-logged logged-${log.status}`}>
+        <span className="meal-node" aria-hidden>
+          <StatusIcon state={log.status} size={12} />
+        </span>
+        <button className="logged-row" onClick={onOpen} aria-label={`Edit ${planned.label} log`}>
+          <span className="logged-text">
+            <span className="meal-label">
+              {formatClock(planned.time)} · {planned.label}
+            </span>
+            <strong>{log.substitute ? log.substitute : planned.title}</strong>
+            <span className="logged-status">{CLIENT_STATUS_LABEL[log.status]}</span>
+          </span>
+          <Pencil size={14} className="muted" />
+        </button>
+      </li>
+    );
+  }
+
   return (
-    <li className={`meal-card ${upNext ? 'meal-next' : ''} ${log ? 'meal-logged' : ''}`}>
-      <div className="meal-time">
-        <span>{formatClock(planned.time)}</span>
-        {upNext && !log && <span className="next-tag">Up next</span>}
-      </div>
+    <li className={`meal-card ${upNext ? 'meal-next' : ''}`}>
+      <span className="meal-node" aria-hidden />
       <div className="meal-main">
         <div className="meal-head">
-          <span className="meal-label">{planned.label}</span>
+          <span className="meal-label">
+            {formatClock(planned.time)} · {planned.label}
+          </span>
+          {upNext && <span className="next-tag">Up next</span>}
           {updated && <span className="tag-updated">Updated by {practitioner}</span>}
         </div>
         <h3>{planned.title}</h3>
@@ -178,28 +198,14 @@ function MealCard({
             ))}
           </ul>
         )}
-
-        {log ? (
-          <div className={`logged-row logged-${log.status}`}>
-            <StatusIcon state={log.status} />
-            <span>
-              {CLIENT_STATUS_LABEL[log.status]}
-              {log.substitute ? `: ${log.substitute}` : ''}
-            </span>
-            <button className="icon-btn" onClick={onOpen} aria-label={`Edit ${planned.label} log`}>
-              <Pencil size={14} />
-            </button>
-          </div>
-        ) : (
-          <div className="log-actions">
-            <button className="btn btn-primary" onClick={quickLog} disabled={quick.pending}>
-              {quick.pending ? <Spinner /> : <Check size={15} />} Had it
-            </button>
-            <button className="btn btn-ghost" onClick={onOpen}>
-              Something changed
-            </button>
-          </div>
-        )}
+        <div className="log-actions">
+          <button className="btn btn-primary" onClick={quickLog} disabled={quick.pending}>
+            {quick.pending ? <Spinner /> : <Check size={15} />} Had it
+          </button>
+          <button className="btn btn-ghost" onClick={onOpen}>
+            Something changed
+          </button>
+        </div>
       </div>
     </li>
   );

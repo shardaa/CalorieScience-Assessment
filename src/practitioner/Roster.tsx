@@ -6,7 +6,7 @@ import { analyse, type Analysis, type TriggerCode } from '../domain/insights';
 import { daysBetween, relativeTime, toDateKey } from '../domain/time';
 import type { Client } from '../domain/types';
 import { SLOTS } from '../domain/types';
-import { Avatar, Chip, EmptyState, ErrorState, SkeletonList } from '../ui/kit';
+import { Avatar, EmptyState, ErrorState, SkeletonList } from '../ui/kit';
 
 type Filter = 'attention' | 'feedback' | 'gaps' | 'flagged' | 'all';
 
@@ -44,27 +44,26 @@ export function Roster({ onOpen }: { onOpen: (id: string) => void }) {
   const visible = rows.filter((r) => fn(r.a) && r.client.name.toLowerCase().includes(q.toLowerCase()));
 
   return (
-    <div className="pr-page">
+    <div className="pr-page enter">
       <div className="page-head">
         <div>
           <p className="eyebrow">Caseload · {db.clients.length} active clients</p>
           <h1>Who needs you this week</h1>
-          <p className="muted">Sorted by what changed since your last review. Clients you've reviewed with no new data sink to the bottom.</p>
-        </div>
-      </div>
-
-      <div className="roster-tools">
-        <div className="chip-row">
-          {FILTERS.map(([k, label]) => (
-            <Chip key={k} active={filter === k} onClick={() => setFilter(k)}>
-              {label} <span className="chip-count">{counts[k]}</span>
-            </Chip>
-          ))}
+          <p className="muted">Sorted by what changed since your last review. Clients you've reviewed sink until something new arrives.</p>
         </div>
         <label className="search">
-          <Search size={14} />
+          <Search size={15} />
           <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search clients" aria-label="Search clients" />
         </label>
+      </div>
+
+      <div className="filter-tiles" role="tablist" aria-label="Filter clients">
+        {FILTERS.map(([k, label]) => (
+          <button key={k} role="tab" aria-selected={filter === k} className={`filter-tile ${filter === k ? 'is-on' : ''} ft-${k}`} onClick={() => setFilter(k)}>
+            <span className="ft-count">{counts[k]}</span>
+            <span className="ft-label">{label}</span>
+          </button>
+        ))}
       </div>
 
       {load.status === 'loading' && <SkeletonList rows={6} h={72} />}

@@ -1,7 +1,7 @@
 import { CalendarDays, X } from 'lucide-react';
 import { useState } from 'react';
 import { useDb, useNow } from '../data/hooks';
-import { buildCells, pct, type Cell, type CellState } from '../domain/adherence';
+import { buildCells, type Cell, type CellState } from '../domain/adherence';
 import type { Analysis } from '../domain/insights';
 import { HUNGER_LABEL, PREP_LABEL, REASON_LABEL, SLOT_LABEL, STATUS_LABEL } from '../domain/labels';
 import { formatClock, formatDay, formatLongDate, isWorkday, minutesOf, toDateKey } from '../domain/time';
@@ -34,37 +34,22 @@ export function WeeklyPattern({ a, clientId }: { a: Analysis; clientId: string }
   return (
     <section className="panel" aria-labelledby="pattern-title">
       <header className="panel-head">
-        <h2 id="pattern-title">Adherence · last 7 days</h2>
-        <span className="muted small">
+        <h2 id="pattern-title">Planned vs reported · {s.due} meals</h2>
+        <span className="panel-meta">
           {formatDay(a.window[0], { day: 'numeric', month: 'short' })} – {formatDay(a.window[6], { day: 'numeric', month: 'short' })}
         </span>
       </header>
 
-      <div className="kpis">
-        <div className="kpi">
-          <span className="kpi-label">Plan alignment</span>
-          <span className="kpi-value">{pct(s.alignment)}</span>
-          <span className="kpi-ctx">of {s.logged} logged meals · partial & substituted count half</span>
+      <div className="breakdown">
+        <div className="stackbar" role="img" aria-label={ORDER.map((o) => `${STATUS_LABEL[o]} ${count(o)}`).join(', ')}>
+          {ORDER.map((o) => (count(o) ? <span key={o} className={`c-${o}`} style={{ flex: count(o) }} title={`${STATUS_LABEL[o]}: ${count(o)}`} /> : null))}
         </div>
-        <div className="kpi">
-          <span className="kpi-label">Logging completeness</span>
-          <span className={`kpi-value ${s.completeness !== null && s.completeness < 0.6 ? 'warn' : ''}`}>{pct(s.completeness)}</span>
-          <span className="kpi-ctx">
-            {s.logged} of {s.due} planned meals logged
-          </span>
-        </div>
-        <div className="kpi kpi-wide">
-          <span className="kpi-label">What happened to {s.due} planned meals</span>
-          <div className="stackbar" role="img" aria-label={ORDER.map((o) => `${STATUS_LABEL[o]} ${count(o)}`).join(', ')}>
-            {ORDER.map((o) => (count(o) ? <span key={o} className={`c-${o}`} style={{ flex: count(o) }} title={`${STATUS_LABEL[o]}: ${count(o)}`} /> : null))}
-          </div>
-          <div className="legend">
-            {ORDER.map((o) => (
-              <span key={o} className="legend-item">
-                <span className={`swatch c-${o}`} /> {STATUS_LABEL[o]} <strong>{count(o)}</strong>
-              </span>
-            ))}
-          </div>
+        <div className="legend">
+          {ORDER.map((o) => (
+            <span key={o} className="legend-item">
+              <span className={`swatch c-${o}`} /> {STATUS_LABEL[o]} <strong>{count(o)}</strong>
+            </span>
+          ))}
         </div>
       </div>
 
@@ -120,7 +105,7 @@ export function WeeklyPattern({ a, clientId }: { a: Analysis; clientId: string }
           </tbody>
         </table>
       </div>
-      <p className="muted small grid-note">Shaded columns are weekends. Click any cell for the client's log. Times shown where they ate 60+ min off plan. Today is excluded from the numbers above.</p>
+      <p className="grid-note">Weekends shaded · times shown when eaten 60+ min off plan · today is left out of the numbers · select a cell for the client's log</p>
 
       {selected && <CellDetail c={selected} onClose={() => setSel(null)} />}
     </section>
