@@ -1,4 +1,4 @@
-import { Check, ChevronDown, Clock, Pencil, Sparkles } from 'lucide-react';
+import { Check, ChevronDown, ChevronRight, Clock, Pencil, Sparkles } from 'lucide-react';
 import { useState } from 'react';
 import { useDb, useMutation, useNow } from '../data/hooks';
 import { buildCells, currentPlan, type Cell } from '../domain/adherence';
@@ -54,51 +54,70 @@ export function TodayScreen({ client, onTell }: { client: Client; onTell: (d: Dr
 
   return (
     <div className="client-pad enter">
-      <header className="client-header">
-        <p className="eyebrow">
-          {formatLongDate(today)} · Week {week} of {client.programmeWeeks}
-        </p>
-        <h1>
-          {greeting(now)}, {client.name.split(' ')[0]}
-        </h1>
+      <header className="client-header today-head">
+        <div>
+          <p className="eyebrow">
+            {formatLongDate(today)} · Week {week} of {client.programmeWeeks}
+          </p>
+          <h1>
+            {greeting(now)},
+            <br />
+            {client.name.split(' ')[0]}
+          </h1>
+        </div>
+        <div className="day-count" aria-label={`${logged} of ${cells.length} meals logged today`}>
+          <strong>
+            {logged}
+            <span>/{cells.length}</span>
+          </strong>
+          <small>logged</small>
+        </div>
       </header>
 
       {unseen.map((m) => (
         <PractitionerCard key={m.id} message={m} from={db.practitioner.name} />
       ))}
 
-      <section className="today-progress" aria-label="Today's logging progress">
-        <div className="segments">
-          {cells.map((c) => (
-            <span key={c.slot} className={`seg ${c.log ? 'seg-done' : c.due ? 'seg-due' : ''}`} title={c.planned.label} />
-          ))}
-        </div>
-        <p>
-          <strong>
-            {logged} of {cells.length}
-          </strong>{' '}
-          meals logged today
-          {logged === cells.length ? '. Complete picture, thank you!' : cells.some((c) => c.due && !c.log) ? '. One or two are waiting for a quick check-in.' : ''}
-        </p>
+      {upNext && (
+        <MealCard
+          hero
+          cell={upNext}
+          clientId={client.id}
+          updated={!!isUpdated(upNext)}
+          tip={tipFor(upNext.slot)}
+          practitioner={practitioner}
+          onOpen={() => setSheet(upNext)}
+        />
+      )}
+      {!upNext && (
+        <section className="day-done">
+          <Check size={20} />
+          <div>
+            <strong>Every meal is logged</strong>
+            <p>That's a complete picture of today for {practitioner}. Thank you.</p>
+          </div>
+        </section>
+      )}
+
+      <section aria-labelledby="day-title">
+        <h2 className="list-title" id="day-title">
+          Your day
+        </h2>
+        <ol className="day-list">
+          {cells
+            .filter((c) => c.slot !== upNext?.slot)
+            .map((c) => (
+              <MealCard key={c.slot} cell={c} clientId={client.id} updated={!!isUpdated(c)} tip={tipFor(c.slot)} practitioner={practitioner} onOpen={() => setSheet(c)} />
+            ))}
+        </ol>
       </section>
 
-      <ol className="meal-list">
-        {cells.map((c) => (
-          <MealCard
-            key={c.slot}
-            cell={c}
-            clientId={client.id}
-            upNext={upNext?.slot === c.slot}
-            updated={!!isUpdated(c)}
-            tip={tipFor(c.slot)}
-            practitioner={practitioner}
-            onOpen={() => setSheet(c)}
-          />
-        ))}
-      </ol>
-
-      <button className="link-btn center" onClick={() => onTell({})}>
-        Something not working with your plan? Tell {practitioner} →
+      <button className="tell-card" onClick={() => onTell({})}>
+        <span>
+          <strong>Something not working?</strong>
+          <small>Tell {practitioner} what gets in the way so your plan can change with you.</small>
+        </span>
+        <ChevronRight size={18} />
       </button>
 
       {sheet && <LogSheet cell={sheet} clientId={client.id} practitioner={practitioner} onClose={() => setSheet(null)} onTell={onTell} />}
@@ -127,7 +146,7 @@ function PractitionerCard({ message, from }: { message: Message; from: string })
 function MealCard({
   cell,
   clientId,
-  upNext,
+  hero,
   updated,
   tip,
   practitioner,
@@ -135,7 +154,7 @@ function MealCard({
 }: {
   cell: Cell;
   clientId: string;
-  upNext: boolean;
+  hero?: boolean;
   updated: boolean;
   tip?: Message;
   practitioner: string;
@@ -150,63 +169,65 @@ function MealCard({
       success: `${planned.label} logged`,
     });
 
-  if (log) {
+  if (hero) {
     return (
-      <li className={`meal-card meal-logged logged-${log.status}`}>
-        <span className="meal-node" aria-hidden>
-          <StatusIcon state={log.status} size={12} />
-        </span>
-        <button className="logged-row" onClick={onOpen} aria-label={`Edit ${planned.label} log`}>
-          <span className="logged-text">
-            <span className="meal-label">
-              {formatClock(planned.time)} · {planned.label}
-            </span>
-            <strong>{log.substitute ? log.substitute : planned.title}</strong>
-            <span className="logged-status">{CLIENT_STATUS_LABEL[log.status]}</span>
-          </span>
-          <Pencil size={14} className="muted" />
-        </button>
-      </li>
-    );
-  }
-
-  return (
-    <li className={`meal-card ${upNext ? 'meal-next' : ''}`}>
-      <span className="meal-node" aria-hidden />
-      <div className="meal-main">
-        <div className="meal-head">
-          <span className="meal-label">
-            {formatClock(planned.time)} · {planned.label}
-          </span>
-          {upNext && <span className="next-tag">Up next</span>}
-          {updated && <span className="tag-updated">Updated by {practitioner}</span>}
+      <section className="hero-meal" aria-label={`Up next: ${planned.label}`}>
+        <div className="hero-top">
+          <span className="hero-kicker">Up next · {planned.label}</span>
+          <span className="hero-time">{formatClock(planned.time)}</span>
         </div>
-        <h3>{planned.title}</h3>
-        <p className="meal-desc">{planned.description}</p>
+        {updated && <span className="hero-updated">Updated by {practitioner}</span>}
+        <h2>{planned.title}</h2>
+        <p className="hero-desc">{planned.description}</p>
         {tip && (
-          <p className="meal-tip">
-            <Sparkles size={12} /> <span title={tip.body}>{tip.body}</span>
+          <p className="hero-tip">
+            <Sparkles size={13} /> <span title={tip.body}>{tip.body}</span>
           </p>
         )}
-        <button className="disclose" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
+        <button className="hero-disclose" onClick={() => setOpen((o) => !o)} aria-expanded={open}>
           Other options · ~{planned.prepMinutes} min prep <ChevronDown size={14} className={open ? 'rot' : ''} />
         </button>
         {open && (
-          <ul className="examples">
+          <ul className="hero-examples">
             {planned.examples.map((e) => (
               <li key={e}>{e}</li>
             ))}
           </ul>
         )}
-        <div className="log-actions">
-          <button className="btn btn-primary" onClick={quickLog} disabled={quick.pending}>
-            {quick.pending ? <Spinner /> : <Check size={15} />} Had it
+        <div className="hero-actions">
+          <button className="btn btn-hero" onClick={quickLog} disabled={quick.pending}>
+            {quick.pending ? <Spinner /> : <Check size={16} />} Had it
           </button>
-          <button className="btn btn-ghost" onClick={onOpen}>
+          <button className="btn btn-hero-ghost" onClick={onOpen}>
             Something changed
           </button>
         </div>
-      </div>
+      </section>
+    );
+  }
+
+  return (
+    <li className={`day-row ${log ? `is-logged logged-${log.status}` : ''}`}>
+      <span className="day-time">{formatClock(planned.time).replace(' ', '\u00a0')}</span>
+      <button className="day-main" onClick={onOpen} aria-label={log ? `Edit ${planned.label} log` : `Log ${planned.label}`}>
+        <span className="meal-label">
+          {planned.label}
+          {updated && <span className="tag-updated">Updated by {practitioner}</span>}
+        </span>
+        <strong>{log?.substitute ? log.substitute : planned.title}</strong>
+        {log && (
+          <span className="day-status">
+            <StatusIcon state={log.status} size={12} /> {CLIENT_STATUS_LABEL[log.status]}
+          </span>
+        )}
+      </button>
+      {log ? (
+        <Pencil size={14} className="day-edit" aria-hidden />
+      ) : (
+        <button className="day-check" onClick={quickLog} disabled={quick.pending} aria-label={`Had ${planned.label} as planned`}>
+          {quick.pending ? <Spinner /> : <Check size={16} />}
+        </button>
+      )}
     </li>
   );
 }

@@ -18,12 +18,12 @@ Before recording: open `/#/`, click **Demo → Reset scenario data**, and use a 
 - Three tiers: *Observed* (always with counts), *Possible explanations* ("not confirmed"), *Worth considering*. "The system never claims why. It says what, how often, and what she told us."
 - Heatmap: weekend shading makes the workday pattern obvious; late dinner times are printed in the cells; the **hatched Wednesday dinner is missing data, not a skip**. Click it to show "Unknown whether eaten". Click a skipped snack to show her reasons and comment.
 - Summary band: the paragraph plus two numbers (logged 27/28, plan alignment), each with its denominator. Explain why they're never blended.
-- Feedback panel: her quoted message, with reasons aggregated by meal.
+- **Inbox** in the sidebar: every client's feedback in one queue. Open Ananya's message: it lands on her *Feedback* tab, with reasons aggregated by meal.
 
 **2:45–3:40 · Action → client outcome**
-- Click **Act on this** next to the snack observation → *Start from a suggested adjustment* → *Record proposed adjustment*. "Propose and apply are separate. You can park a change for the next session."
+- Back on *Overview*, click **Act on this** next to the snack observation. A drawer slides in: *Start from a suggested adjustment* → *Record proposed adjustment*. "Propose and apply are separate. You can park a change for the next session."
 - **Apply to plan & notify**. Switch eyes to the phone: plan-update card, *Portable protein snack · Updated by Neha*, Messages badge. Tap **Got it** → the practitioner sees "Client: Read your message".
-- Mention: plan v2 starts today; last week's logs still point at v1, so history isn't rewritten.
+- Open the *Meal plan* tab: v2 starts today with the snack marked "Changed in v2"; last week's logs still point at v1, so history isn't rewritten.
 - **Mark week reviewed** → back on the roster, Ananya sinks until she logs again.
 
 **3:40–4:00 · Engineering and close**

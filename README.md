@@ -5,8 +5,8 @@
 A working prototype of the feedback loop between a client following a meal plan (**Companion App**, mobile) and their nutrition practitioner (**CalorieScience dashboard**, desktop). Both sides share one live data store, so anything the client logs shows up on the practitioner side, and anything the practitioner changes shows up in the client's app.
 
 > **Try the loop in 60 seconds** (split view at `/`):
-> 1. Dashboard → Ananya → in *What the logs show → Observed*, click **Act on this** next to "Afternoon snack skipped on 4 of 7 logged days".
-> 2. **Start from a suggested adjustment** → **Record proposed adjustment** → **Apply to plan & notify**.
+> 1. Dashboard → Ananya → *Overview* tab → in *What the logs show → Observed*, click **Act on this** next to "Afternoon snack skipped on 4 of 7 logged days".
+> 2. In the drawer that slides in: **Start from a suggested adjustment** → **Record proposed adjustment** → **Apply to plan & notify**. The *Meal plan* tab now shows v2.
 > 3. Ananya's phone now shows a *Your plan was updated* card, the snack card reads **Portable protein snack · Updated by Neha**, and Messages has a badge.
 > 4. On the phone, tap **Something changed** on Lunch → *Had something else* → "Ordered in" → Save. The practitioner's activity feed and grid update straight away.
 
@@ -50,7 +50,9 @@ src/
     backend.ts       Simulated API: localStorage persistence, latency, failure, cross-tab sync
     hooks.tsx        useDb (useSyncExternalStore), useLoad, useMutation, toasts
   client/            Companion App: Today, LogSheet, My week, Messages
-  practitioner/      Roster, ClientDetail, InsightPanel, WeeklyPattern, FeedbackPanel, ActionsPanel
+  practitioner/      Sidebar shell, Roster (caseload), Inbox (all client feedback), ClientDetail (tabs: Overview,
+                     Feedback, Meal plan, Notes & activity; actions in a slide-over drawer), InsightPanel,
+                     WeeklyPattern, FeedbackPanel, ActionsPanel
   ui/kit.tsx         Status icons/pills, skeletons, empty/error states
 ```
 
