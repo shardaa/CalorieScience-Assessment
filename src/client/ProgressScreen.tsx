@@ -27,8 +27,8 @@ export function ProgressScreen({ client, onTell }: { client: Client; onTell: (d:
   return (
     <div className="client-pad">
       <header className="client-header">
-        <p className="eyebrow">Your day</p>
-        <h1>Today at a glance</h1>
+        <h1>My week</h1>
+        <p className="hello-sub">Check-ins, not scores. Every log helps.</p>
       </header>
 
       <section className="card ring-card">
@@ -90,7 +90,7 @@ export function ProgressScreen({ client, onTell }: { client: Client; onTell: (d:
 
       <section className="card">
         <h3 className="card-title">
-          <CalendarDays size={15} /> Your check-ins this week
+          <CalendarDays size={15} /> Check-ins this week
         </h3>
         {weekSummary.logged === 0 && weekSummary.due === 0 ? (
           <EmptyState icon={<CalendarDays size={22} />} title="Your week starts today">
@@ -98,18 +98,18 @@ export function ProgressScreen({ client, onTell }: { client: Client; onTell: (d:
           </EmptyState>
         ) : (
           <>
-            <div className="week-strip">
+            <div className="week-bars" role="img" aria-label={week.map((d) => `${formatDay(d, { weekday: 'long' })}: ${weekCells.filter((c) => c.date === d && c.log).length} logged`).join(', ')}>
               {week.map((d) => {
                 const dayCells = weekCells.filter((c) => c.date === d);
+                const n = dayCells.filter((c) => c.log).length;
+                const total = Math.max(4, dayCells.length);
                 return (
-                  <div key={d} className={`week-day ${d === today ? 'is-today' : ''}`}>
-                    <span className="wd">{formatDay(d, { weekday: 'narrow' })}</span>
-                    <div className="dots">
-                      {dayCells.map((c) => (
-                        <span key={c.slot} className={`dot ${c.log ? 'dot-on' : c.state === 'upcoming' ? 'dot-future' : 'dot-off'}`} title={`${c.planned.label}: ${c.log ? 'logged' : c.state === 'upcoming' ? 'later' : 'not logged'}`} />
-                      ))}
-                      {dayCells.length === 0 && <span className="dot dot-future" />}
-                    </div>
+                  <div key={d} className={`wbar ${d === today ? 'is-today' : ''}`}>
+                    {d === today && <span className="wbar-tip">{n}/{dayCells.length}</span>}
+                    <span className="wbar-track">
+                      <span className="wbar-fill" style={{ height: `${Math.max(6, (n / total) * 100)}%` }} />
+                    </span>
+                    <span className="wd">{formatDay(d, { weekday: 'short' })}</span>
                   </div>
                 );
               })}

@@ -1,7 +1,7 @@
 # Product decisions (Part D)
 
 ### What should the client see first?
-**Today's meals, in time order, with the next one highlighted** ("Up next"), and above them only two things: any unread message from the practitioner, and a 4-segment logging strip. No score, no streak, no calorie numbers. The client's question on opening the app is "what am I eating next?", not "how am I doing?".
+**Today's meals, in time order, with the next one highlighted** ("Up next"), and above them only two things: any unread message from the practitioner, and a check-in card ("2 of 4 meals" with a ring). No score, no streak, no calorie numbers. The next meal gets a large card of its own; a centre **+** in the tab bar logs it from any screen. The client's question on opening the app is "what am I eating next?", not "how am I doing?".
 
 ### What should the practitioner see first?
 **A triaged caseload**, not a client. "Who needs you this week" is pre-filtered to *Needs attention* and sorted by trigger severity, with each row saying *why* it surfaced ("Afternoon snack often skipped", "New client feedback"). Opening a client leads with a **one-paragraph summary** of what appears to be happening. The heatmap, feedback and actions come after it.

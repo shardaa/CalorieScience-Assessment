@@ -16,7 +16,7 @@ Before recording: open `/#/`, click **Demo → Reset scenario data**, and use a 
 - Back to the **Caseload** (click *Caseload*): "Who needs you this week", with *why* each client surfaced and a 4×7 micro-heatmap. Mention reviewed clients sinking and the 80-client demo.
 - Open Ananya. Read the **summary band** at the top: one paragraph plus the two numbers.
 - Three tiers: *Observed* (always with counts), *Possible explanations* ("not confirmed"), *Worth considering*. "The system never claims why. It says what, how often, and what she told us."
-- Heatmap: weekend shading makes the workday pattern obvious; late dinner times are printed in the cells; the **hatched Wednesday dinner is missing data, not a skip**. Click it to show "Unknown whether eaten". Click a skipped snack to show her reasons and comment.
+- Heatmap (meals across the top, days down the side): shaded weekend rows make the workday pattern obvious, and the snack column reads as one streak of skips; late dinner times are printed in the cells; the **hatched Wednesday dinner is missing data, not a skip**. Click it to show "Unknown whether eaten". Click a skipped snack to show her reasons and comment.
 - Summary band: the paragraph plus two numbers (logged 27/28, plan alignment), each with its denominator. Explain why they're never blended.
 - **Inbox** in the sidebar: every client's feedback in one queue. Open Ananya's message: it lands on her *Feedback* tab, with reasons aggregated by meal.
 

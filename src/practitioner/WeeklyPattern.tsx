@@ -54,41 +54,56 @@ export function WeeklyPattern({ a, clientId }: { a: Analysis; clientId: string }
       </div>
 
       <div className="grid-scroll">
+        {/* Meals across the top, days down the side: four columns fit any screen, and a week reads top to bottom. */}
         <table className="week-grid">
           <thead>
             <tr>
-              <th className="row-h">Meal · planned</th>
-              {a.window.map((d) => (
-                <th key={d} className={isWorkday(d) ? '' : 'weekend'}>
-                  <span>{formatDay(d, { weekday: 'short' })}</span>
-                  <small>{formatDay(d, { day: 'numeric' })}</small>
-                </th>
-              ))}
-              <th className="today-col">
-                <span>Today</span>
-                <small>so far</small>
-              </th>
-              <th className="row-sum">7-day pattern</th>
+              <th className="day-h">Day</th>
+              {SLOTS.map((slot) => {
+                const first = a.cells.find((c) => c.slot === slot);
+                return (
+                  <th key={slot} className="meal-h">
+                    <span>{SLOT_LABEL[slot].replace('Afternoon snack', 'Snack')}</span>
+                    <small>{first ? formatClock(first.planned.time) : ''}</small>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {SLOTS.map((slot) => {
-              const row = a.cells.filter((c) => c.slot === slot);
-              const rs = a.bySlot[slot];
-              const tc = todayCells.find((c) => c.slot === slot);
-              return (
-                <tr key={slot}>
-                  <th className="row-h">
-                    {SLOT_LABEL[slot]}
-                    <small>{row[0] ? formatClock(row[0].planned.time) : ''}</small>
-                  </th>
-                  {a.window.map((d) => {
-                    const c = row.find((x) => x.date === d);
-                    if (!c) return <td key={d} className="cell c-none" />;
-                    return <GridCell key={d} c={c} selected={sel?.date === d && sel.slot === slot} onClick={() => setSel(c)} weekend={!isWorkday(d)} />;
-                  })}
-                  {tc ? <GridCell c={tc} selected={sel?.date === today && sel.slot === slot} onClick={() => setSel(tc)} weekend={false} faded /> : <td className="cell c-none" />}
-                  <td className="row-sum">
+            {a.window.map((d) => (
+              <tr key={d} className={isWorkday(d) ? '' : 'weekend'}>
+                <th className="day-h">
+                  <span>{formatDay(d, { weekday: 'short' })}</span>
+                  <small>{formatDay(d, { day: 'numeric', month: 'short' })}</small>
+                </th>
+                {SLOTS.map((slot) => {
+                  const c = a.cells.find((x) => x.date === d && x.slot === slot);
+                  if (!c) return <td key={slot} className="cell c-none" />;
+                  return <GridCell key={slot} c={c} selected={sel?.date === d && sel.slot === slot} onClick={() => setSel(c)} weekend={!isWorkday(d)} />;
+                })}
+              </tr>
+            ))}
+            <tr className="today-row">
+              <th className="day-h">
+                <span>Today</span>
+                <small>so far</small>
+              </th>
+              {SLOTS.map((slot) => {
+                const tc = todayCells.find((c) => c.slot === slot);
+                return tc ? <GridCell key={slot} c={tc} selected={sel?.date === today && sel.slot === slot} onClick={() => setSel(tc)} weekend={false} faded /> : <td key={slot} className="cell c-none" />;
+              })}
+            </tr>
+          </tbody>
+          <tfoot>
+            <tr>
+              <th className="day-h">
+                <span>7 days</span>
+              </th>
+              {SLOTS.map((slot) => {
+                const rs = a.bySlot[slot];
+                return (
+                  <td key={slot} className="col-sum">
                     <div className="row-bar">
                       {ORDER.map((o) => {
                         const n = o === 'not_logged' ? rs.notLogged : rs.counts[o as 'followed'];
@@ -99,13 +114,13 @@ export function WeeklyPattern({ a, clientId }: { a: Analysis; clientId: string }
                       {rs.counts.followed}/{rs.due} as planned
                     </small>
                   </td>
-                </tr>
-              );
-            })}
-          </tbody>
+                );
+              })}
+            </tr>
+          </tfoot>
         </table>
       </div>
-      <p className="grid-note">Weekends shaded · times shown when eaten 60+ min off plan · today is left out of the numbers · select a cell for the client's log</p>
+      <p className="grid-note">Weekend rows shaded · times shown when eaten 60+ min off plan · today is left out of the numbers · select a cell for the client's log</p>
 
       {selected && <CellDetail c={selected} onClose={() => setSel(null)} />}
     </section>

@@ -62,8 +62,8 @@ export function FeedbackScreen({ client, draft, onDraftUsed }: { client: Client;
   return (
     <div className="client-pad">
       <header className="client-header">
-        <p className="eyebrow">Messages</p>
         <h1>Talk to {practitioner}</h1>
+        <p className="hello-sub">Your nutritionist reads every message.</p>
       </header>
 
       <section className="card compose">

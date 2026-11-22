@@ -49,7 +49,7 @@ src/
   data/
     backend.ts       Simulated API: localStorage persistence, latency, failure, cross-tab sync
     hooks.tsx        useDb (useSyncExternalStore), useLoad, useMutation, toasts
-  client/            Companion App: Today, LogSheet, My week, Messages
+  client/            Companion App: Today (up-next card, day list, centre + to log), Plan, My week (check-in bars), Messages, LogSheet
   practitioner/      Sidebar shell, Roster (caseload), Inbox (all client feedback), ClientDetail (tabs: Overview,
                      Feedback, Meal plan, Notes & activity; actions in a slide-over drawer), InsightPanel,
                      WeeklyPattern, FeedbackPanel, ActionsPanel
@@ -65,7 +65,7 @@ src/
 | Choice | Why |
 |---|---|
 | React 18 + TypeScript + Vite | Fast to build in. Strict types keep the data model honest. |
-| No UI framework, plain CSS with custom properties and **container queries**. Palette ("Frost and slate", teal accent) and type (Geist + Geist Mono) dealt by the tasteskill design skill for a software product | The practitioner dashboard has to adapt to the *pane* it sits in (split view vs full screen), not just the viewport. |
+| No UI framework, plain CSS with custom properties and **container queries**. "Fresh" theme: peach-to-mint gradient grounds, frosted-glass cards, one leafy green for actions, Plus Jakarta Sans. Meals are shown as emoji "plates" (no photo assets or nutrition database needed) |
 | No router library | Three routes. A 10-line hash router is enough. |
 | `lucide-react` icons | Status is always shown as **icon + label**, never colour alone. |
 | Vitest | Tests the domain layer without a DOM. |
