@@ -207,11 +207,20 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
 .phone { width: 380px; flex: 1; max-height: 820px; min-height: 0; border-radius: 52px; border: 11px solid #121c21; background: var(--bg); overflow: hidden; box-shadow: 0 0 0 1px #2e3a40, var(--shadow-3); position: relative; }
 .phone-island { position: absolute; top: 9px; left: 50%; transform: translateX(-50%); width: 104px; height: 30px; border-radius: 999px; background: #121c21; z-index: 30; }
 .phone .client-app { padding-top: 40px; }
+.pane-label-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 8px; }
+.pane-label-row .pane-label { margin-bottom: 0; }
+.device-switch { display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 10px; padding: 2px; }
+.device-switch button { border: none; background: none; display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 8px; font-size: 12px; font-weight: 500; color: var(--muted); min-height: 28px; transition: background 0.15s, color 0.15s; }
+.device-switch button:hover { color: var(--ink); }
+.device-switch button.is-on { background: var(--card); color: var(--ink); box-shadow: var(--shadow-1); }
+.pr-phone-stage { flex: 1; min-height: 0; display: flex; justify-content: center; border-radius: var(--r-lg); background: repeating-linear-gradient(-45deg, transparent 0 10px, rgb(31 48 56 / 2.5%) 10px 11px); padding-top: 2px; }
+.phone-pr { flex: 0 1 auto; height: 100%; }
+.phone .pr-app { padding-top: 40px; background: var(--card); }
 .app-window { flex: 1; min-height: 0; border-radius: var(--r-lg); overflow: hidden; background: var(--bg); box-shadow: var(--shadow-2); border: 1px solid var(--line-2); }
 
 @media (max-width: 1100px) {
   .demo-switch { display: flex; }
-  .demo-sub, .demo-links, .demo-tag { display: none; }
+  .demo-sub, .demo-links, .demo-tag, .device-switch { display: none; }
   .demo-panes { padding: 14px; }
   .demo-panes.show-client .pane-practitioner, .demo-panes.show-practitioner .pane-client { display: none; }
   .pane-client { flex: 1; }
@@ -222,7 +231,7 @@ ul, ol { margin: 0; padding: 0; list-style: none; }
   .demo-switch { margin-left: 0; }
   .demo-switch button { padding: 7px 10px; }
   .demo-panes { padding: 0; }
-  .pane-label, .phone-island { display: none; }
+  .pane-label, .phone-island, .device-switch { display: none; }
   .phone { width: 100%; max-height: none; border: none; border-radius: 0; box-shadow: none; }
   .phone .client-app { padding-top: 0; }
   .app-window { border-radius: 0; border: none; box-shadow: none; }

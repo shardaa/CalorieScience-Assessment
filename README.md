@@ -25,7 +25,7 @@ Routes (hash-based, so the static build works on any host):
 
 | Route | What |
 |---|---|
-| `/#/` | **Split demo**: Ananya's phone + the practitioner dashboard side by side. On narrow screens a toggle switches between them. |
+| `/#/` | **Split demo**: Ananya's phone + the practitioner dashboard side by side. A **Desktop / Phone** switch above the dashboard shows it in a phone frame too (sidebar becomes a bottom bar, actions open full-screen). On narrow screens a toggle switches between the two apps. |
 | `/#/client` | Client Companion App only (open on a phone) |
 | `/#/practitioner` | Practitioner dashboard only (starts at the caseload) |
 

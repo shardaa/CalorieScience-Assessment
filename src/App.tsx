@@ -1,4 +1,4 @@
-import { ArrowUpRight, LayoutDashboard, Leaf, RotateCcw, SlidersHorizontal, Smartphone, Users, WifiOff, X } from 'lucide-react';
+import { ArrowUpRight, LayoutDashboard, Leaf, Monitor, RotateCcw, SlidersHorizontal, Smartphone, Users, WifiOff, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { ClientApp } from './client/ClientApp';
 import { backend } from './data/backend';
@@ -16,6 +16,7 @@ function readRoute(): Route {
 export function App() {
   const [route, setRoute] = useState<Route>(readRoute);
   const [mobilePane, setMobilePane] = useState<'client' | 'practitioner'>('client');
+  const [prDevice, setPrDevice] = useState<'desktop' | 'phone'>('desktop');
   useEffect(() => {
     const on = () => setRoute(readRoute());
     window.addEventListener('hashchange', on);
@@ -76,12 +77,31 @@ export function App() {
           </div>
         </section>
         <section className="pane-practitioner" aria-label="Practitioner dashboard">
-          <p className="pane-label">
-            <span className="pane-dot pane-dot-pr" /> Neha · Practitioner dashboard
-          </p>
-          <div className="app-window">
-            <PractitionerApp initialClientId={PRIMARY_CLIENT_ID} />
+          <div className="pane-label-row">
+            <p className="pane-label">
+              <span className="pane-dot pane-dot-pr" /> Neha · Practitioner dashboard
+            </p>
+            <div className="device-switch" role="tablist" aria-label="Practitioner screen size">
+              <button role="tab" aria-selected={prDevice === 'desktop'} className={prDevice === 'desktop' ? 'is-on' : ''} onClick={() => setPrDevice('desktop')}>
+                <Monitor size={13} /> Desktop
+              </button>
+              <button role="tab" aria-selected={prDevice === 'phone'} className={prDevice === 'phone' ? 'is-on' : ''} onClick={() => setPrDevice('phone')}>
+                <Smartphone size={13} /> Phone
+              </button>
+            </div>
           </div>
+          {prDevice === 'desktop' ? (
+            <div className="app-window">
+              <PractitionerApp initialClientId={PRIMARY_CLIENT_ID} />
+            </div>
+          ) : (
+            <div className="pr-phone-stage">
+              <div className="phone phone-pr">
+                <span className="phone-island" aria-hidden />
+                <PractitionerApp initialClientId={PRIMARY_CLIENT_ID} />
+              </div>
+            </div>
+          )}
         </section>
       </div>
       <DemoControls />
